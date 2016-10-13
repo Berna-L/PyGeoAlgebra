@@ -60,6 +60,17 @@ class Multivector:
 		else:
 			return (0.0, 0)
 
+	@staticmethod
+	def RP(coef1: float, mask1: int, coef2: float, mask2: int, dimensions: int):
+		maskResult = mask1 & mask2
+		if (GRADE(mask1) + GRADE(mask2) - GRADE(maskResult) == dimensions):
+			signal = CANON_REORDER(mask1 ^ mask2, mask2 ^ maskResult)
+			coefResult = signal * coef1 * coef2
+		else:
+			coefResult = 0
+			maskResult = 0
+		return (coefResult, maskResult)
+
 	@staticmethod	
 	def CANON_REORDER(mask1: int, mask2: int):
 		changes = 0
