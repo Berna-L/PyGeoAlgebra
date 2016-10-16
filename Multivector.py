@@ -71,6 +71,14 @@ class Multivector:
 			maskResult = 0
 		return (coefResult, maskResult)
 
+	@staticmethod
+	def GP(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
+		signal = CANON_REORDER(mask1, mask2)
+		metric = metric.factor(mask1 & mask2)
+		coefResult = signal * metric * coef1 * coef2
+		maskResult = mask1 ^ mask2
+		return (coefResult, maskResult)
+
 	@staticmethod	
 	def CANON_REORDER(mask1: int, mask2: int):
 		changes = 0
