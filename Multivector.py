@@ -58,13 +58,13 @@ class Multivector:
 		for mask1, coef1 in self.mv.items():
 			for mask2, coef2 in other.mv.items():
 				if (operation == self.OP_OUTER_PRODUCT):
-					coef, mask = Multivector.OP(coef1, mask1, coef2, mask2)
+					coef, mask = Multivector.OP_COMPONENT(coef1, mask1, coef2, mask2)
 				elif (operation == self.OP_REGRESSIVE_PRODUCT):
-					coef, mask = Multivector.RP(coef1, mask1, coef2, mask2)
+					coef, mask = Multivector.RP_COMPONENT(coef1, mask1, coef2, mask2)
 				elif (operation == self.OP_GEOMETRIC_PRODUCT):
-					coef, mask = Multivector.GP(coef1, mask1, coef2, mask2, self.metric)
+					coef, mask = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, self.metric)
 				elif (operation == self.OP_LEFT_CONTRACTION):
-					coef, mask = Multivector.LCONT(coef1, mask1, coef2, mask2, self.metric)
+					coef, mask = Multivector.LCONT_COMPONENT(coef1, mask1, coef2, mask2, self.metric)
 				result.insertBase(coef, mask)
 		return result
 
@@ -72,7 +72,7 @@ class Multivector:
 		return self.multiOperator(other, self.OP_OUTER_PRODUCT)
 
 	@staticmethod
-	def OP(coef1: float, mask1: int, coef2: float, mask2: int):
+	def OP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int):
 		if (mask1 & mask2 == 0):
 			signal = Multivector.CANON_REORDER(mask1, mask2)
 			coefResult = signal * coef1 * coef2
@@ -86,7 +86,7 @@ class Multivector:
 
 
 	@staticmethod
-	def RP(coef1: float, mask1: int, coef2: float, mask2: int, dimensions: int):
+	def RP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, dimensions: int):
 		maskResult = mask1 & mask2
 		if (GRADE(mask1) + GRADE(mask2) - GRADE(maskResult) == dimensions):
 			signal = CANON_REORDER(mask1 ^ mask2, mask2 ^ maskResult)
@@ -99,19 +99,22 @@ class Multivector:
 	def GP(self, other):
 		return self.multiOperator(other, self.OP_GEOMETRIC_PRODUCT)
 
-
 	@staticmethod
-	def GP(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
+	def GP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
 		signal = Multivector.CANON_REORDER(mask1, mask2)
 		metric = metric.factor(mask1 & mask2) #Implementar métrica depois
 		coefResult = signal * metric * coef1 * coef2
 		maskResult = mask1 ^ mask2
 		return (coefResult, maskResult)
 
-	# def LCONT(self, other):
-		# mult = self.multiOperator(other, self.OP_GEOMETRIC_PRODUCT)
-		# coefResult, maskResult = mult.TAKE_GRADE(Multivector.GRADE(mask2) - Multivector.GRADE(mask1))
-		# return (coefResult, maskResult)
+	def LCONT(self, other):
+		return self.multiOperator(other, self.OP_LEFT_CONTRACTION)
+
+	@staticmethod
+	def LCONT_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
+		mult = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, metric)
+		coefResult, maskResult = mult.TAKE_GRADE(Multivector.GRADE(mask2) - Multivector.GRADE(mask1))
+		return (coefResult, maskResult)
 
 	def TAKE_GRADE(self, grade: int):
 		for mask, coef in self.mv.items():

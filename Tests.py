@@ -9,7 +9,9 @@ b.insertBase(1, 0b010)
 for mask, coef in sorted(b.mv.items()):
 	print("Máscara: ", mask, "Coeficiente: ", coef)
 
-result = Multivector.e(3).LCONT(b)
+e3 = Multivector.e(3)
+
+result = e3.LCONT(a ^ b)
 
 for mask, coef in sorted(result.mv.items()):
 	print("Máscara: ", mask, "Coeficiente: ", coef)
