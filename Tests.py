@@ -1,12 +1,15 @@
 from Multivector import Multivector
 
 
-mvr = (Multivector.e(2) - Multivector.e(1)) ^ (Multivector.e(1) - Multivector.e_coef(-2, 3))
-for mask, coef in sorted(mvr.mv.items()):
+a = Multivector.e(1)
+a.insertBase(1, 0b100)
+b = Multivector.e(1)
+b.insertBase(1, 0b010)
+
+for mask, coef in sorted(b.mv.items()):
 	print("Máscara: ", mask, "Coeficiente: ", coef)
 
-mvr2 = (Multivector.e(2) + Multivector.e(3)) ^ (Multivector.e_coef(0.5, 1) + Multivector.e(2) + Multivector.e_coef(1.5, 3))
-print("\n\n\n")
+result = Multivector.e(3).LCONT(b)
 
-for mask, coef in sorted(mvr2.mv.items()):
+for mask, coef in sorted(result.mv.items()):
 	print("Máscara: ", mask, "Coeficiente: ", coef)
