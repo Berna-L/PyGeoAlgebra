@@ -113,7 +113,7 @@ class Multivector:
 	@staticmethod
 	def LCONT_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
 		coefResult, maskResult = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, metric)
-		if (Multivector.GRADE(coefResult) == Multivector.GRADE(mask2) - Multivector.GRADE(mask1)):
+		if (Multivector.GRADE(maskResult) == Multivector.GRADE(mask2) - Multivector.GRADE(mask1)):
 			return (coefResult, maskResult)
 		else:
 			return (0, 0)
