@@ -26,7 +26,7 @@ e1 = Multivector.e(1)
 e2 = Multivector.e(2)
 e3 = Multivector.e(3)
 
-result = (e1 + e2 + e3).LCONT(e1)
+result = (3 * e1).LCONT(5 * (e1 ^ e2))
 
 for mask, coef in sorted(result.mv.items()):
 	print("Máscara: ", decimalToBinary(mask), "	Coeficiente: ", coef)

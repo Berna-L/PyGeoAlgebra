@@ -52,6 +52,16 @@ class Multivector:
 			self.mv[mask] = -coef
 		return self
 
+	def __mul__(self, factor):
+		if (isinstance(factor, int)):
+			for (mask, coef) in self.mv.items():
+				self.mv[mask] = factor * coef
+			return self
+
+	def __rmul__(self, factor):
+		return self * factor
+
+
 	def multiOperator(self, other, operation, metric = None):
 		result = Multivector()
 		if (metric is None):
