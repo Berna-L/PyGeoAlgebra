@@ -60,7 +60,7 @@ class Multivector:
 				if (operation == self.OP_OUTER_PRODUCT):
 					coef, mask = Multivector.OP_COMPONENT(coef1, mask1, coef2, mask2)
 				elif (operation == self.OP_REGRESSIVE_PRODUCT):
-					coef, mask = Multivector.RP_COMPONENT(coef1, mask1, coef2, mask2)
+					coef, mask = Multivector.RP_COMPONENT(coef1, mask1, coef2, mask2) #Dimension missing
 				elif (operation == self.OP_GEOMETRIC_PRODUCT):
 					coef, mask = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, self.metric)
 				elif (operation == self.OP_LEFT_CONTRACTION):
@@ -86,9 +86,9 @@ class Multivector:
 
 
 	@staticmethod
-	def RP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, dimensions: int):
+	def RP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, dimension: int): #How to dimension?
 		maskResult = mask1 & mask2
-		if (GRADE(mask1) + GRADE(mask2) - GRADE(maskResult) == dimensions):
+		if (GRADE(mask1) + GRADE(mask2) - GRADE(maskResult) == dimension):
 			signal = CANON_REORDER(mask1 ^ mask2, mask2 ^ maskResult)
 			coefResult = signal * coef1 * coef2
 		else:
