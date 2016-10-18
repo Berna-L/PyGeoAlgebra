@@ -1,3 +1,7 @@
+#Notas:
+##Entrada do delta tem que ser 2 blades
+##Entrada da inversa tem que ser versor
+
 import collections
 import Metric
 import OrthogonalMetric
@@ -109,6 +113,9 @@ class Multivector:
 
 	def LCONT(self, other, metric: Metric = None):
 		return self.multiOperator(other, self.OP_LEFT_CONTRACTION, metric)
+
+	def RCONT(self, other, metric: Metric = None):
+		return other.multiOperator(self, self.OP_LEFT_CONTRACTION, metri)
 
 	@staticmethod
 	def LCONT_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
