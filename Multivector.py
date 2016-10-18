@@ -5,17 +5,12 @@ from Euclidian import Euclidian
 
 class Multivector:
 
-	def __init__(self, metric: Metric = None):
+	def __init__(self):
 		self.OP_OUTER_PRODUCT = 1
 		self.OP_REGRESSIVE_PRODUCT = 2
 		self.OP_GEOMETRIC_PRODUCT = 3
 		self.OP_LEFT_CONTRACTION = 4
-
-
 		self.mv = collections.OrderedDict()
-		self.metric = metric
-		if (metric is None):
-			self.metric = Euclidian()
 
 	def __add__(self, other):
 		result = Multivector()
@@ -53,8 +48,10 @@ class Multivector:
 			self.mv[mask] = -coef
 		return self
 
-	def multiOperator(self, other, operation):
+	def multiOperator(self, other, operation, metric = None):
 		result = Multivector()
+		if (metric is None):
+			metric = Euclidian()
 		for mask1, coef1 in self.mv.items():
 			for mask2, coef2 in other.mv.items():
 				if (operation == self.OP_OUTER_PRODUCT):
@@ -62,14 +59,17 @@ class Multivector:
 				elif (operation == self.OP_REGRESSIVE_PRODUCT):
 					coef, mask = Multivector.RP_COMPONENT(coef1, mask1, coef2, mask2) #Dimension missing
 				elif (operation == self.OP_GEOMETRIC_PRODUCT):
-					coef, mask = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, self.metric)
+					coef, mask = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, metric)
 				elif (operation == self.OP_LEFT_CONTRACTION):
-					coef, mask = Multivector.LCONT_COMPONENT(coef1, mask1, coef2, mask2, self.metric)
+					coef, mask = Multivector.LCONT_COMPONENT(coef1, mask1, coef2, mask2, metric)
 				result.insertBase(coef, mask)
 		return result
 
 	def __xor__(self, other): #Outer product, ^ is for xor-ing in Python, so...
 		return self.multiOperator(other, self.OP_OUTER_PRODUCT)
+
+	def OP(self, other):
+		return __xor__(other)
 
 	@staticmethod
 	def OP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int):
@@ -96,31 +96,34 @@ class Multivector:
 			maskResult = 0
 		return (coefResult, maskResult)
 
-	def GP(self, other):
-		return self.multiOperator(other, self.OP_GEOMETRIC_PRODUCT)
+	def GP(self, other, metric: Metric = None):
+		return self.multiOperator(other, self.OP_GEOMETRIC_PRODUCT, metric)
 
 	@staticmethod
 	def GP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
 		signal = Multivector.CANON_REORDER(mask1, mask2)
-		metric = metric.factor(mask1 & mask2) #Implementar métrica depois
+		metric = metric.factor(mask1 & mask2)
 		coefResult = signal * metric * coef1 * coef2
 		maskResult = mask1 ^ mask2
 		return (coefResult, maskResult)
 
-	def LCONT(self, other):
-		return self.multiOperator(other, self.OP_LEFT_CONTRACTION)
+	def LCONT(self, other, metric: Metric = None):
+		return self.multiOperator(other, self.OP_LEFT_CONTRACTION, metric)
 
 	@staticmethod
 	def LCONT_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
-		mult = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, metric)
-		coefResult, maskResult = mult.TAKE_GRADE(Multivector.GRADE(mask2) - Multivector.GRADE(mask1))
-		return (coefResult, maskResult)
+		coefResult, maskResult = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, metric)
+		if (Multivector.GRADE(coefResult) == Multivector.GRADE(mask2) - Multivector.GRADE(mask1)):
+			return (coefResult, maskResult)
+		else:
+			return (0, 0)
 
-	def TAKE_GRADE(self, grade: int):
-		for mask, coef in self.mv.items():
-			if (GRADE(mask) == grade):
-				return (coef, mask)
-		return (0, 0)
+	# @staticmethod
+	# def TAKE_GRADE(self, grade: int):
+	# 	for mask, coef in self.mv.items():
+	# 		if (GRADE(mask) == grade):
+	# 			return (coef, mask)
+	# 	return (0, 0)
 
 	@staticmethod	
 	def CANON_REORDER(mask1: int, mask2: int):
@@ -137,7 +140,7 @@ class Multivector:
 	@staticmethod
 	def GRADE(mask: int):
 		result = 0
-		while (mask != 0):
+		while (mask > 0):
 			if (mask % 2 == 1):
 				result += 1
 			mask //= 2
@@ -157,8 +160,8 @@ class Multivector:
 				self.overrideBase(coef, mask)
 
 
-	def removeBase(self, base: int):
-		overrideBase(base, 0)
+	def removeBase(self, coef: int):
+		overrideBase(coef, 0)
 
 	@staticmethod
 	def e_coef(coef: float, base: int):
