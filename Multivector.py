@@ -13,7 +13,8 @@ class Multivector:
 		self.OP_OUTER_PRODUCT = 1
 		self.OP_REGRESSIVE_PRODUCT = 2
 		self.OP_GEOMETRIC_PRODUCT = 3
-		self.OP_LEFT_CONTRACTION = 4
+		self.OP_BLADES_SCALAR_PRODUCT = 4
+		self.OP_LEFT_CONTRACTION = 5
 		self.mv = collections.OrderedDict()
 
 	def __add__(self, other):
@@ -42,24 +43,28 @@ class Multivector:
 		return result
 
 	def __radd__(self, other):
-		return other + self
+		return self + other
 
 	def __sub__(self, other):
 		return self + (-other)
 
 	def __neg__(self):
+		result = Multivector()
 		for (mask, coef) in self.mv.items():
-			self.mv[mask] = -coef
-		return self
+			result.mv[mask] = -coef
+		return result
 
-	def __mul__(self, factor):
-		if (isinstance(factor, int)):
+	def __mul__(self, other):
+		if (isinstance(other, int) or isinstance(other, float)):
+			result = Multivector()
 			for (mask, coef) in self.mv.items():
-				self.mv[mask] = factor * coef
-			return self
+				result.mv[mask] = other * coef
+			return result
+		elif (isinstance(other, Multivector)):
+				return self.multiOperator(other, self.OP_BLADES_SCALAR_PRODUCT)
 
-	def __rmul__(self, factor):
-		return self * factor
+	def __rmul__(self, other):
+		return self * other
 
 
 	def multiOperator(self, other, operation, metric = None):
@@ -76,6 +81,8 @@ class Multivector:
 					coef, mask = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, metric)
 				elif (operation == self.OP_LEFT_CONTRACTION):
 					coef, mask = Multivector.LCONT_COMPONENT(coef1, mask1, coef2, mask2, metric)
+				elif (operation == self.OP_BLADES_SCALAR_PRODUCT):
+					coef, mask = Multivector.SCP_COMPONENT(coef1, mask1, coef2, mask2, metric)
 				result.insertBase(coef, mask)
 		return result
 
@@ -125,7 +132,7 @@ class Multivector:
 		return self.multiOperator(other, self.OP_LEFT_CONTRACTION, metric)
 
 	def RCONT(self, other, metric: Metric = None):
-		return other.multiOperator(self, self.OP_LEFT_CONTRACTION, metri)
+		return other.multiOperator(self, self.OP_LEFT_CONTRACTION, metric)
 
 	@staticmethod
 	def LCONT_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
@@ -134,6 +141,18 @@ class Multivector:
 			return (coefResult, maskResult)
 		else:
 			return (0, 0)
+
+	def SCP(self, other, metric: Metric = None):
+		return self.multiOperator(other, self.OP_BLADES_SCALAR_PRODUCT, metric)
+
+	@staticmethod
+	def SCP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
+		if (Multivector.GRADE(mask1) == Multivector.GRADE(mask2)):
+			coefResult, maskResult = Multivector.GP_COMPONENT(coef1, mask1, coef2, mask2, metric)
+			return (coefResult, maskResult)
+		else:
+			return (0, 0)
+
 
 	# @staticmethod
 	# def TAKE_GRADE(self, grade: int):

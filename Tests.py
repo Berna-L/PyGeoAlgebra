@@ -14,20 +14,45 @@ def decimalToBinary(number):
 		string = "escalar"
 	return string
 
-a = Multivector.e(1)
-a.insertBase(1, 0b100)
-b = Multivector.e(1)
-b.insertBase(1, 0b010)
+def printer(result: Multivector, description):
+	print("\n========================\n", description, "\n========================")
+	if (len(result.mv.keys()) is 0):
+		print("Multivetor vazio.")
+	for mask, coef in sorted(result.mv.items()):
+		print("Máscara: ", decimalToBinary(mask), "	Coeficiente: ", coef)
 
-# for mask, coef in sorted(b.mv.items()):
-# 	print("Máscara: ", mask, "Coeficiente: ", coef)
 
 e1 = Multivector.e(1)
 e2 = Multivector.e(2)
 e3 = Multivector.e(3)
+e4 = Multivector.e(4)
 
-result = (3 * e1).LCONT(5 * (e1 ^ e2))
+#Questão 1
+printer(((e1 + e2) ^ (e3 + e2)), "Questão 1a")
+printer(((e2 - e1) ^ (e1 - 2 * e3)), "Questão 1b")
+printer(((4 * e1 + e2 + e3) ^ (3 * e1)), "Questão 1c")
+printer(((e2 + e3) ^ ((0.5 * e1) + e2 + (1.5 * e3))), "Questão 1d")
+printer(((e1 + e2) ^ ((e2 ^ e1) + (e3 ^ e2))), "Questão 1e")
 
-for mask, coef in sorted(result.mv.items()):
-	print("Máscara: ", decimalToBinary(mask), "	Coeficiente: ", coef)
+#Questão 2
+Q2B = e1 ^ (e2 + (2 * e3)) ^ e4
 
+printer(Q2B ^ e1, "Questão 2a")
+printer(Q2B ^ (e1 - (3 * e4)), "Questão 2b")
+printer(Q2B ^ (e2 + e3), "Questão 2c")
+
+#Questão 3
+a = (2 * e2) + e3
+b = e2 - e3
+
+printer(a ^ b, "Questão 3")
+
+#Questão 4
+a = e1 + e3
+b = e1 + e2
+
+printer(a * b, "Questão 4a")
+printer(e3.LCONT(b), "Questão 4b")
+printer(e3.LCONT(a ^ b), "Questão 4c")
+printer((a ^ b).LCONT(e1), "Questão 4d")
+printer(((2 * a) + b) * (a + b), "Questão 4e")
