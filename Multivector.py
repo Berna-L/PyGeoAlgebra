@@ -89,6 +89,15 @@ class Multivector:
 	def __xor__(self, other): #Outer product, ^ is for xor-ing in Python, so...
 		return self.multiOperator(other, self.OP_OUTER_PRODUCT)
 
+	def REVERSE(self):
+		result = Multivector()
+		for coef, mask in self.mv.items():
+			k = Multivector.GRADE(mask)
+			result.mv[mask] = coef * pow(-1, (k * (k - 1)) / 2)
+
+	def SQR_NORM_REV(self):
+		return self.SCP(self.REVERSE())
+
 	def OP(self, other):
 		return __xor__(other)
 
