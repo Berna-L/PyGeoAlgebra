@@ -56,5 +56,6 @@ printer(e3.LCONT(b), "Questão 4b")
 printer(e3.LCONT(a ^ b), "Questão 4c")
 printer((a ^ b).LCONT(e1), "Questão 4d")
 printer(((2 * a) + b) * (a + b), "Questão 4e")
+printer((e1 ^ e2 ^ e3).RCONT(b), "Questão 4f")
 
 #Questão 5
