@@ -14,7 +14,7 @@ def decimalToBinary(number):
 		string = "escalar"
 	return string
 
-def printer(result: Multivector, description):
+def printer(result, description):
 	print("\n========================\n", description, "\n========================")
 	if (len(result.mv.keys()) is 0):
 		print("Multivetor vazio.")
