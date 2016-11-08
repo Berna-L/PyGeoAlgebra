@@ -5,39 +5,37 @@
 import collections
 import Metric
 import OrthogonalMetric
-from Euclidian import Euclidian
-from GA import GA
+import Euclidian
 
-class Multivector:
+class Multivector(object):
 
 	def __init__(self):
 		self.mv = collections.OrderedDict()
 
 	def __add__(self, other):
-		return GA.SUM(self, other)
-		# result = Multivector()
-		# iterSelf = iter(sorted(self.mv.keys()))
-		# iterOther = iter(sorted(other.mv.keys()))
-		# mask1 = next(iterSelf, None)
-		# mask2 = next(iterOther, None)
-		# while (mask1 is not None) and (mask2 is not None):
-		# 	if (mask1 < mask2):
-		# 		result.overrideBase(self.mv[mask1], mask1)
-		# 		mask1 = next(iterSelf, None)
-		# 	elif (mask1 > mask2):
-		# 		result.overrideBase(other.mv[mask2], mask2)
-		# 		mask2 = next(iterOther, None)
-		# 	else:
-		# 		result.overrideBase(self.mv[mask1] + other.mv[mask2], mask1)
-		# 		mask1 = next(iterSelf, None)
-		# 		mask2 = next(iterOther, None)
-		# while (mask1 is not None):
-		# 	result.overrideBase(self.mv[mask1], mask1)
-		# 	mask1 = next(iterSelf, None)
-		# while (mask2 is not None):
-		# 	result.overrideBase(other.mv[mask2], mask2)
-		# 	mask2 = next(iterOther, None)
-		# return result
+		result = Multivector()
+		iterSelf = iter(sorted(self.masks()))
+		iterOther = iter(sorted(other.masks()))
+		mask1 = next(iterSelf, None)
+		mask2 = next(iterOther, None)
+		while (mask1 is not None) and (mask2 is not None):
+			if (mask1 < mask2):
+				result.overrideBase(self[mask1], mask1)
+				mask1 = next(iterSelf, None)
+			elif (mask1 > mask2):
+				result.overrideBase(other[mask2], mask2)
+				mask2 = next(iterOther, None)
+			else:
+				result.overrideBase(self[mask1] + other[mask2], mask1)
+				mask1 = next(iterSelf, None)
+				mask2 = next(iterOther, None)
+		while (mask1 is not None):
+			result.overrideBase(self[mask1], mask1)
+			mask1 = next(iterSelf, None)
+		while (mask2 is not None):
+			result.overrideBase(other[mask2], mask2)
+			mask2 = next(iterOther, None)
+		return result
 
 	def __radd__(self, other):
 		return self + other
@@ -54,17 +52,22 @@ class Multivector:
 	def __mul__(self, other):
 		if (isinstance(other, int) or isinstance(other, float)):
 			result = Multivector()
-			for (mask, coef) in self.mv.items():
-				result.mv[mask] = other * coef
+			for (mask, coef) in self.items():
+				result[mask] = other * coef
 			return result
 		elif (isinstance(other, Multivector)):
-				return self.multiOperator(other, self.OP_BLADES_SCALAR_PRODUCT)
+			from GA import Operation
+			import GA
+			return GA.multiOperator(self, other, GA.Operation.BLADES_SCALAR_PRODUCT)
 
 	def __rmul__(self, other):
 		return self * other
 
 	def __getitem__(self, key):
 		return self.mv[key]
+
+	def __setitem__(self, key, value):
+		self.mv[key] = value
 
 	def items(self):
 		return self.mv.items()
@@ -95,6 +98,8 @@ class Multivector:
 	# 	return result
 
 	def __xor__(self, other): #Outer product, ^ is for xor-ing in Python, so...
+		from GA import Operation
+		import GA
 		return GA.multiOperator(self, other, GA.Operation.OUTER_PRODUCT)
 
 	# def REVERSE(mv):
@@ -103,11 +108,11 @@ class Multivector:
 	# 		k = Multivector.GRADE(mask)
 	# 		result[mask] = coef * pow(-1, (k * (k - 1)) / 2)
 
-	def SQR_NORM_REV(self):
-		return self.SCP(self.REVERSE())
+	# def SQR_NORM_REV(self):
+	# 	return self.SCP(self.REVERSE())
 
-	def OP(self, other):
-		return __xor__(other)
+	# def OP(self, other):
+	# 	return __xor__(other)
 
 	# @staticmethod
 	# def OP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int):
@@ -119,8 +124,8 @@ class Multivector:
 	# 	else:
 	# 		return (0.0, 0)
 
-	def RP(self, other):
-		return GA.multiOperator(self, other, GA.Operation.REGRESSIVE_PRODUCT)
+	# def RP(self, other):
+	# 	return GA.multiOperator(self, other, GA.Operation.REGRESSIVE_PRODUCT)
 
 
 	# @staticmethod
@@ -134,8 +139,8 @@ class Multivector:
 	# 		maskResult = 0
 	# 	return (coefResult, maskResult)
 
-	def GP(self, other, metric: Metric = None):
-		return GA.multiOperator(self, other, GA.Operation.GEOMETRIC_PRODUCT, metric)
+	# def GP(self, other, metric: Metric = None):
+	# 	return GA.multiOperator(self, other, GA.Operation.GEOMETRIC_PRODUCT, metric)
 
 	# @staticmethod
 	# def GP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
@@ -145,11 +150,11 @@ class Multivector:
 	# 	maskResult = mask1 ^ mask2
 	# 	return (coefResult, maskResult)
 
-	def LCONT(self, other, metric: Metric = None):
-		return GA.multiOperator(self, other, GA.Operation.LEFT_CONTRACTION, metric)
+	# def LCONT(self, other, metric: Metric = None):
+	# 	return GA.multiOperator(self, other, GA.Operation.LEFT_CONTRACTION, metric)
 
-	def RCONT(self, other, metric: Metric = None):
-		return GA.multiOperator(other, self, GA.Operation.LEFT_CONTRACTION, metric)
+	# def RCONT(self, other, metric: Metric = None):
+	# 	return GA.multiOperator(other, self, GA.Operation.LEFT_CONTRACTION, metric)
 
 	# @staticmethod
 	# def LCONT_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
@@ -159,8 +164,8 @@ class Multivector:
 	# 	else:
 	# 		return (0, 0)
 
-	def SCP(self, other, metric: Metric = None):
-		return self.multiOperator(other, self.OP_BLADES_SCALAR_PRODUCT, metric)
+	# def SCP(self, other, metric: Metric = None):
+		# return GA.multiOperator(other, GA.Operation.BLADES_SCALAR_PRODUCT, metric)
 
 	# @staticmethod
 	# def SCP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
@@ -224,6 +229,10 @@ class Multivector:
 		mv.overrideBase(coef, pow(2, base - 1))
 		return mv
 
+	eSingleton = [None] * 50
+
 	@staticmethod
 	def e(base: int):
-		return Multivector.e_coef(1.0, base)
+		if (Multivector.eSingleton[base] is None):
+			Multivector.eSingleton[base] = Multivector.e_coef(1.0, base)
+		return Multivector.eSingleton[base]

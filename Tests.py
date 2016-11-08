@@ -1,4 +1,5 @@
 from Multivector import Multivector
+import GA
 
 def decimalToBinary(number):
 	string = ""
@@ -52,10 +53,10 @@ a = e1 + e3
 b = e1 + e2
 
 printer(a * b, "Questão 4a")
-printer(e3.LCONT(b), "Questão 4b")
-printer(e3.LCONT(a ^ b), "Questão 4c")
-printer((a ^ b).LCONT(e1), "Questão 4d")
+printer(GA.LCONT(e3, b), "Questão 4b")
+printer(GA.LCONT(e3, a ^ b), "Questão 4c")
+printer(GA.LCONT((a ^ b), e1), "Questão 4d")
 printer(((2 * a) + b) * (a + b), "Questão 4e")
-printer((e1 ^ e2 ^ e3).RCONT(b), "Questão 4f")
+printer(GA.RCONT((e1 ^ e2 ^ e3), b), "Questão 4f")
 
 #Questão 5
