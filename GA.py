@@ -64,7 +64,7 @@ def DUAL(mv, dimensions):
 	if (dimensions is not None):
 		#Pseudo-scalar construction
 		maskPseudo = 0
-		for i in range(0, dimensions)
+		for i in range(0, dimensions):
 			maskPseudo = maskPseudo + pow(2, i)
 		pseudo = Multivector()
 		pseudo[maskPseudo] = 1
@@ -103,10 +103,14 @@ def GP(mv1, mv2, metric: Metric = None):
 
 
 def GP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
+	if (mask1 == 0 and mask2 ==0):
+		return (coef1 * coef2, 0)
 	signal = CANON_REORDER(mask1, mask2)
-	metric = metric.factor(mask1 & mask2)
-	coefResult = signal * metric * coef1 * coef2
+	metricFactor = metric.factor(mask1 & mask2)
+	coefResult = signal * metricFactor * coef1 * coef2
 	maskResult = mask1 ^ mask2
+	if (GRADE(mask1) + GRADE(mask2) <= GRADE(maskResult) and metricFactor == 0):
+		coefResult = signal * coef1 * coef2
 	return (coefResult, maskResult)
 
 def LCONT(mv1, mv2, metric: Metric = None):
@@ -130,7 +134,10 @@ def SCP(mv1, mv2, metric: Metric = None):
 def SCP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
 	if (GRADE(mask1) == GRADE(mask2)):
 		coefResult, maskResult = GP_COMPONENT(coef1, mask1, coef2, mask2, metric)
-		return (coefResult, maskResult)
+		if (maskResult == 0):
+			return (coefResult, maskResult)
+		else:
+			return (0, 0)
 	else:
 		return (0, 0)
 
@@ -194,24 +201,27 @@ def CANON_REORDER(mask1: int, mask2: int):
 	else:
 		return -1
 
-def GRADE(mask: int):
-	result = 0
-	while (mask > 0):
-		if (mask % 2 == 1):
-			result += 1
-		mask //= 2
-	return result
-
-def GRADE(blade: Multivector)
-	bladeGrade = None
-	for mask in mv.masks():
-		currGrade = GRADE(mask)
-		if (bladeGrade is None):
-			bladeGrade = currGrade
-		elif (currGrade != bladeGrade):
-			raise ValueError("Must be a blade")
-	return currGrade
-
+def GRADE(obj: int):
+	if (isinstance(obj, int)):
+		mask = obj
+		result = 0
+		while (mask > 0):
+			if (mask % 2 == 1):
+				result += 1
+			mask //= 2
+		return result
+	elif(isinstance(obj, multivector)):
+		blade = obj
+		bladeGrade = None
+		for mask in blade.masks():
+			currGrade = GRADE(mask)
+			if (bladeGrade is None):
+				bladeGrade = currGrade
+			elif (currGrade != bladeGrade):
+				raise ValueError("Must be a blade")
+		return currGrade
+	else:
+		raise TypeError("Can only grade a blade or mask")
 
 def MAX_GRADE(mv):
 	maxGrade = -1
@@ -228,7 +238,7 @@ def TAKE_GRADE(mv, grade: int):
 			result[mask] = coef
 	return result
 
-def MASK_WITH_MAX_ABS_COEF(mv)
+def MASK_WITH_MAX_ABS_COEF(mv):
 	maskResult = -1
 	maxCoef = 0
 	for mask, coef in mv.items():

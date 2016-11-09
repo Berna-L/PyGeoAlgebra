@@ -59,15 +59,51 @@ class Multivector(object):
 			from GA import Operation
 			import GA
 			return GA.multiOperator(self, other, GA.Operation.BLADES_SCALAR_PRODUCT)
+		else:
+			raise TypeError("Must multiply by a scalar or other Multivector")
 
 	def __rmul__(self, other):
 		return self * other
+
+	def __div__(self, other):
+		if (isinstance(other, int) or isinstance(other, float)):
+			result = Multivector()
+			for (mask, coef) in self.items():
+				result[mask] = other / coef
+			return result
+		elif (isinstance(other, Multivector)):
+			from GA import Operation
+			import GA
+			return GA.multiOperator(self, GA.INVERSE(other), GA.Operation.GEOMETRIC_PRODUCT)
+		else:
+			raise TypeError("Must divide by a scalar or other Multivector")
 
 	def __getitem__(self, key):
 		return self.mv[key]
 
 	def __setitem__(self, key, value):
 		self.mv[key] = value
+
+	def __eq__(self, other):
+		iterSelf = iter(sorted(self.masks()))
+		iterOther = iter(sorted(other.masks()))
+		mask1 = next(iterSelf, None)
+		mask2 = next(iterOther, None)
+		while (mask1 is not None) and (mask2 is not None):
+			if (mask1 < mask2):
+				return False
+			elif (mask1 > mask2):
+				return False
+			else:
+				if (self[mask1] != other[mask2]):
+					return False
+				mask1 = next(iterSelf, None)
+				mask2 = next(iterOther, None)
+		while (mask1 is not None):
+			return False
+		while (mask2 is not None):
+			return False
+		return True
 
 	def items(self):
 		return self.mv.items()
@@ -205,21 +241,23 @@ class Multivector(object):
 	# 	return result
 
 	def overrideBase(self, coef: float, mask: int):
-		if (coef != 0):
+		if (mask != 0 or coef != 0):
 			self[mask] = coef
 		else:
-			del self[mask]
+			self.removeBase(mask)
 
 	def insertBase(self, coef: float, mask: int):
-		if (coef != 0):
-			if mask in self.mv:
-				self[mask] += coef
-			else:
-				self.overrideBase(coef, mask)
+		if mask in self.mv:
+			self[mask] += coef
+		else:
+			self.overrideBase(coef, mask)
 
 
-	def removeBase(self, coef: int):
-		overrideBase(coef, 0)
+	def removeBase(self, mask: int):
+		try:
+			del self.mv[mask]
+		except KeyError:
+			pass
 
 	@staticmethod
 	def e_coef(coef: float, base: int):
