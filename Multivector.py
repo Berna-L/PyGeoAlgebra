@@ -274,3 +274,12 @@ class Multivector(object):
 		if (Multivector.eSingleton[base] is None):
 			Multivector.eSingleton[base] = Multivector.e_coef(1.0, base)
 		return Multivector.eSingleton[base]
+
+	@staticmethod
+	def pseudoscalar(dimensions: int):
+		maskPseudo = 0
+		for i in range(0, dimensions):
+			maskPseudo = maskPseudo + pow(2, i)
+		pseudo = Multivector()
+		pseudo[maskPseudo] = 1
+		return pseudo

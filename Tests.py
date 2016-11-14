@@ -152,12 +152,14 @@ class TestLibraryMethods(unittest.TestCase):
         e4 = Multivector.e(4)
 
         a = e1 ^ e2 ^ e3
-        b = e2 ^ e4
+        b = e4 ^ e2
 
         meetResult = e2
         joinResult = e1 ^ e2 ^ e3 ^ e4
 
-        self.assertEqual(GA.MEET_JOIN(a, b, 4), (meetResult, joinResult))
+        meetFunction, joinFunction = GA.MEET_JOIN(a, b, 4)
+
+        self.assertEqual((meetFunction, joinFunction), (meetResult, joinResult))
 
 
 if __name__ == '__main__':

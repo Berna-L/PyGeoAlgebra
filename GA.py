@@ -64,22 +64,13 @@ def SQR_NORM_REV(mv):
 
 def DUAL(mv, dimensions):
 	if (dimensions is not None):
-		#Pseudo-scalar construction
-		maskPseudo = 0
-		for i in range(0, dimensions):
-			maskPseudo = maskPseudo + pow(2, i)
-		pseudo = Multivector()
-		pseudo[maskPseudo] = 1
+		pseudo = Multivector.pseudoscalar(dimensions)
 		return LCONT(mv, INVERSE(pseudo))
 
 def INVERSE_DUAL(mv, dimensions):
 	if (dimensions is not None):
 		#Pseudo-scalar construction
-		maskPseudo = 0
-		for i in range(0, dimensions):
-			maskPseudo = maskPseudo + pow(2, i)
-		pseudo = Multivector()
-		pseudo[maskPseudo] = 1
+		pseudo = Multivector.pseudoscalar(dimensions)
 		return LCONT(mv, pseudo)
 
 
@@ -172,7 +163,8 @@ def MEET_JOIN(blade1, blade2, dimensions):
 		delta = DELTA_PRODUCT(blade1, blade2)
 		t = ((r + s - GRADE(delta)) / 2)
 		scalar, factors = BLADE_FACTOR(DUAL(delta, dimensions))
-		meet = 1
+		meet = Multivector()
+		meet[0b0] = 1
 		join = Multivector()
 		emptyVector = Multivector()
 		for factor in factors.values():
@@ -182,9 +174,9 @@ def MEET_JOIN(blade1, blade2, dimensions):
 				if (GRADE(meet) == t):
 					join = RCONT(blade1, INVERSE(meet)) ^ blade2
 					break
-			rejec = ORTHOGONAL_REJECTION(factor, blade1)
+			reject = ORTHOGONAL_REJECTION(factor, blade1)
 			if (reject != emptyVector):
-				join = LCONT(reje, join)
+				join = LCONT(reject, join)
 				if (GRADE(join) == r + s - t):
 					meet = INVERSE_DUAL(DUAL(B, dimensions) ^ DUAL(A, dimensions), dimensions)
 					break
@@ -193,8 +185,6 @@ def MEET_JOIN(blade1, blade2, dimensions):
 			meet = meet * factor
 			join = join * factor
 		return meet, join
-
-
 
 #Métodos auxiliares
 
