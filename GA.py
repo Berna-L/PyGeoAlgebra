@@ -4,6 +4,7 @@ import OrthogonalMetric
 from Euclidian import Euclidian
 
 from enum import Enum
+import math
 
 class Operation(Enum):
 	OUTER_PRODUCT = 2
@@ -50,15 +51,16 @@ def MUL(mv, other):
 
 def REVERSE(mv):
 	result = Multivector()
-	for coef, mask in mv.items():
+	for mask, coef in mv.items():
 		k = GRADE(mask)
 		result[mask] = coef * pow(-1, (k * (k - 1)) / 2)
+	return result
 
 def INVERSE(mv):
 	return REVERSE(mv) / SQR_NORM_REV(mv)
 
 def SQR_NORM_REV(mv):
-	return SCP(REVERSE(mv))
+	return SCP(mv, REVERSE(mv))
 
 def DUAL(mv, dimensions):
 	if (dimensions is not None):
@@ -69,6 +71,16 @@ def DUAL(mv, dimensions):
 		pseudo = Multivector()
 		pseudo[maskPseudo] = 1
 		return LCONT(mv, INVERSE(pseudo))
+
+def INVERSE_DUAL(mv, dimensions):
+	if (dimensions is not None):
+		#Pseudo-scalar construction
+		maskPseudo = 0
+		for i in range(0, dimensions):
+			maskPseudo = maskPseudo + pow(2, i)
+		pseudo = Multivector()
+		pseudo[maskPseudo] = 1
+		return LCONT(mv, pseudo)
 
 
 def OP(mv1, mv2):
@@ -128,7 +140,9 @@ def LCONT_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: 
 		return (0, 0)
 
 def SCP(mv1, mv2, metric: Metric = None):
-	return multiOperator(mv1, mv2, Operation.BLADES_SCALAR_PRODUCT, metric)
+	result = multiOperator(mv1, mv2, Operation.BLADES_SCALAR_PRODUCT, metric)
+	for mask in result.masks():
+		return result[mask]
 
 
 def SCP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, metric: OrthogonalMetric):
@@ -149,7 +163,7 @@ def DELTA_PRODUCT(blade1, blade2):
 	raise TypeError("Not a blade")
 
 
-def MEET_JOIN(blade1, blade2):
+def MEET_JOIN(blade1, blade2, dimensions):
 	if (IS_BLADE(blade1) and IS_BLADE(blade2)):
 		r = GRADE(blade1)
 		s = GRADE(blade2)
@@ -157,21 +171,22 @@ def MEET_JOIN(blade1, blade2):
 			blade1, blade2 = blade2, blade1
 		delta = DELTA_PRODUCT(blade1, blade2)
 		t = ((r + s - GRADE(delta)) / 2)
-		scalar, factors = BLADE_FACTOR(DUAL(delta))
+		scalar, factors = BLADE_FACTOR(DUAL(delta, dimensions))
 		meet = 1
 		join = Multivector()
-		for factor in factors:
+		emptyVector = Multivector()
+		for factor in factors.values():
 			proj = ORTHOGONAL_PROJECTION(factor, blade1)
-			if (proj != 0):
+			if (proj != emptyVector):
 				meet = meet ^ proj
 				if (GRADE(meet) == t):
 					join = RCONT(blade1, INVERSE(meet)) ^ blade2
 					break
 			rejec = ORTHOGONAL_REJECTION(factor, blade1)
-			if (reject != 0):
+			if (reject != emptyVector):
 				join = LCONT(reje, join)
 				if (GRADE(join) == r + s - t):
-					meet = INVERSE_DUAL(DUAL(B) ^ DUAL(A))
+					meet = INVERSE_DUAL(DUAL(B, dimensions) ^ DUAL(A, dimensions), dimensions)
 					break
 		if (r > s):
 			factor = pow(-1, (r-t)*(s-t))
@@ -186,7 +201,7 @@ def MEET_JOIN(blade1, blade2):
 def IS_BLADE(mv):
 	try:
 		GRADE(mv)
-	except ValueError:
+	except (ValueError, TypeError):
 		return False
 	return True
 
@@ -201,7 +216,7 @@ def CANON_REORDER(mask1: int, mask2: int):
 	else:
 		return -1
 
-def GRADE(obj: int):
+def GRADE(obj):
 	if (isinstance(obj, int)):
 		mask = obj
 		result = 0
@@ -210,16 +225,19 @@ def GRADE(obj: int):
 				result += 1
 			mask //= 2
 		return result
-	elif(isinstance(obj, multivector)):
+	elif(isinstance(obj, Multivector)):
 		blade = obj
 		bladeGrade = None
 		for mask in blade.masks():
 			currGrade = GRADE(mask)
 			if (bladeGrade is None):
 				bladeGrade = currGrade
-			elif (currGrade != bladeGrade):
+			elif (currGrade != bladeGrade and blade[mask] != 0.0):
 				raise ValueError("Must be a blade")
-		return currGrade
+		if (bladeGrade is not None):
+			return bladeGrade
+		else:
+			return ValueError("Empty blade")
 	else:
 		raise TypeError("Can only grade a blade or mask")
 
@@ -250,9 +268,10 @@ def MASK_WITH_MAX_ABS_COEF(mv):
 def BLADE_FACTOR(blade):
 	if (IS_BLADE(blade)):
 		mask = MASK_WITH_MAX_ABS_COEF(blade)
-		scalar = sqrt(SQR_NORM_REV(mv)[0])
+		sqr_norm_rev = SQR_NORM_REV(blade)
+		scalar = math.sqrt(sqr_norm_rev)
 		temp = NORMALIZE_BLADE(blade)
-		factors = []
+		factors = dict()
 		base_vector = 0
 		while (mask / 2 != 0):
 			base_vector = base_vector + 1
@@ -260,13 +279,14 @@ def BLADE_FACTOR(blade):
 				proj = ORTHOGONAL_PROJECTION(Multivector.e(base_vector), temp)
 				factors[base_vector] = NORMALIZE_BLADE(proj)
 				temp = LCONT(INVERSE(factors[base_vector]), temp)
+			mask = mask // 2
 		base_vector = base_vector + 1
 		factors[base_vector] = NORMALIZE_BLADE(temp)
 		return scalar, factors
 
 def NORMALIZE_BLADE(blade):
 	if (IS_BLADE(blade)):
-		return blade / sqrt(SQR_NORM_REV(blade))
+		return blade / math.sqrt(float(SQR_NORM_REV(blade)))
 
 def ORTHOGONAL_PROJECTION(mv1, mv2):
 	c = LCONT(mv1, mv2)

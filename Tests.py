@@ -111,6 +111,54 @@ class TestLibraryMethods(unittest.TestCase):
 
         self.assertEqual(GA.RCONT((e1 ^ e2 ^ e3), b, metric), fResult)
 
+    def test_reverse(self):
+        e1 = Multivector.e(1)
+        e2 = Multivector.e(2)
+        e3 = Multivector.e(3)
+
+        result = Multivector()
+        result[0b111] = -1.0
+
+        self.assertEqual(GA.REVERSE(e1 ^ e2 ^ e3), result)
+
+    def test_inverse(self):
+        e1 = Multivector.e(1)
+        e2 = Multivector.e(2)
+        e3 = Multivector.e(3)
+
+        result = GA.REVERSE(e1 ^ e2 ^ e3)
+
+        self.assertEqual(GA.INVERSE(e1 ^ e2 ^ e3), result)
+
+    def test_dual(self):
+        e1 = Multivector.e(1)
+        e2 = Multivector.e(2)
+        e3 = Multivector.e(3)
+
+        pseudoScalar = GA.INVERSE(e1 ^ e2 ^ e3)
+        b = Multivector()
+        b[0b011] = 5.0
+        b[0b101] = 6.0
+        b[0b110] = 7.0
+
+        result = (5.0 *  e3) - (6.0 * e2) + (7.0 * e1)
+
+        self.assertEqual(GA.DUAL(mv=b, dimensions=3), result)
+
+    def test_meet_join(self):
+        e1 = Multivector.e(1)
+        e2 = Multivector.e(2)
+        e3 = Multivector.e(3)
+        e4 = Multivector.e(4)
+
+        a = e1 ^ e2 ^ e3
+        b = e2 ^ e4
+
+        meetResult = e2
+        joinResult = e1 ^ e2 ^ e3 ^ e4
+
+        self.assertEqual(GA.MEET_JOIN(a, b, 4), (meetResult, joinResult))
+
 
 if __name__ == '__main__':
 

@@ -65,7 +65,7 @@ class Multivector(object):
 	def __rmul__(self, other):
 		return self * other
 
-	def __div__(self, other):
+	def __truediv__(self, other):
 		if (isinstance(other, int) or isinstance(other, float)):
 			result = Multivector()
 			for (mask, coef) in self.items():
