@@ -1,121 +1,117 @@
+import unittest
 from Multivector import Multivector
 from Clifford import Clifford
 import GA
 
-def decimalToBinary(number):
-	string = ""
-	count = 0
-	while (number > 0):
-		count = count + 1
-		if (number % 2 == 1):
-			if (len(string) > 0):
-				string = string + " ^ "
-			string = string + "e" + str(count)
-		number //= 2
-	if (len(string) == 0):
-		string = "escalar"
-	return string
+#Questions based on chapter 2 of Fernandes, Lavor, Oliveira; "Álgebra Geométrica e Aplicações", SMAC,2017
 
-def printer(result, description):
-	print("\n========================\n", description, "\n========================")
-	if (len(result.masks()) is 0):
-		print("Multivetor vazio.")
-	for mask, coef in sorted(result.items()):
-		print("Máscara: ", decimalToBinary(mask), "	Coeficiente: ", coef)
+class TestLibraryMethods(unittest.TestCase):
+
+    def test_question_1(self):
+        e1 = Multivector.e(1)
+        e2 = Multivector.e(2)
+        e3 = Multivector.e(3)
+
+        aResult = Multivector()
+        aResult[0b011] = 1.0
+        aResult[0b101] = 1.0
+        aResult[0b110] = 1.0
+
+        self.assertEqual(((e1 + e2) ^ (e3 + e2)), aResult)
+
+        bResult = Multivector()
+        bResult[0b011] = -1.0
+        bResult[0b101] = 2.0
+        bResult[0b110] = -2.0
+
+        self.assertEqual(((e2 - e1) ^ (e1 - 2 * e3)), bResult)
+
+        cResult = Multivector()
+        cResult[0b011] = -3.0
+        cResult[0b101] = -3.0
+
+        self.assertEqual(((4 * e1 + e2 + e3) ^ (3 * e1)), cResult)
+
+        dResult = Multivector()
+        dResult[0b011] = -0.5
+        dResult[0b101] = -0.5
+        dResult[0b110] = 0.5
+
+        self.assertEqual(((e2 + e3) ^ ((0.5 * e1) + e2 + (1.5 * e3))), dResult)
+
+        eResult = Multivector()
+        eResult[0b111] = -1.0
+
+        self.assertEqual(((e1 + e2) ^ ((e2 ^ e1) + (e3 ^ e2))), eResult)
+
+    def test_question_2(self):
+        e1 = Multivector.e(1)
+        e2 = Multivector.e(2)
+        e3 = Multivector.e(3)
+        e4 = Multivector.e(4)
+
+        Q2B = e1 ^ (e2 + (2 * e3)) ^ e4
+
+        result = Multivector()
+
+        self.assertEqual(Q2B ^ e1, result)
+        self.assertEqual(Q2B ^ (e1 - (3 * e4)), result)
+
+        result[0b1111] = 1.0
+
+        self.assertEqual(Q2B ^ (e2 + e3), result)
+
+    def test_question_3(self):
+        e2 = Multivector.e(2)
+        e3 = Multivector.e(3)
+
+        a = (2 * e2) + e3
+        b = e2 - e3
+
+        result = Multivector()
+        result[0b110] = -3.0
+
+        self.assertEqual(a ^ b, result)
+
+    def test_question_4(self):
+        e1 = Multivector.e(1)
+        e2 = Multivector.e(2)
+        e3 = Multivector.e(3)
+
+        a = e1 + e3
+        b = e1 + e2
+
+        metric = Clifford(p=3)
+
+        emptyResult = Multivector()
+
+        aResult = Multivector()
+        aResult[0b000] = 1.0
+
+        self.assertEqual(a * b, aResult)
+
+        self.assertEqual(GA.LCONT(e3, b, metric), emptyResult)
+
+        cResult = Multivector()
+        cResult[0b001] = 1.0
+        cResult[0b010] = 1.0
+
+        self.assertEqual(GA.LCONT(e3, a ^ b, metric), cResult)
+
+        self.assertEqual(GA.LCONT((a ^ b), e1, metric), emptyResult)
+
+        eResult = Multivector()
+        eResult[0b000] = 9.0
+
+        self.assertEqual(((2 * a) + b) * (a + b), eResult)
+
+        fResult = Multivector()
+        fResult[0b101] = -1.0
+        fResult[0b110] = 1.0
+
+        self.assertEqual(GA.RCONT((e1 ^ e2 ^ e3), b, metric), fResult)
 
 
-e1 = Multivector.e(1)
-e2 = Multivector.e(2)
-e3 = Multivector.e(3)
-e4 = Multivector.e(4)
+if __name__ == '__main__':
 
-#Questão 1
-printer(((e1 + e2) ^ (e3 + e2)), "Questão 1a")
-printer(((e2 - e1) ^ (e1 - 2 * e3)), "Questão 1b")
-printer(((4 * e1 + e2 + e3) ^ (3 * e1)), "Questão 1c")
-printer(((e2 + e3) ^ ((0.5 * e1) + e2 + (1.5 * e3))), "Questão 1d")
-printer(((e1 + e2) ^ ((e2 ^ e1) + (e3 ^ e2))), "Questão 1e")
-
-#Questão 2
-Q2B = e1 ^ (e2 + (2 * e3)) ^ e4
-
-printer(Q2B ^ e1, "Questão 2a")
-printer(Q2B ^ (e1 - (3 * e4)), "Questão 2b")
-printer(Q2B ^ (e2 + e3), "Questão 2c")
-
-#Questão 3
-a = (2 * e2) + e3
-b = e2 - e3
-
-printer(a ^ b, "Questão 3")
-
-#Questão 4
-a = e1 + e3
-b = e1 + e2
-
-metric = Clifford(3, 0, 0)
-
-printer(a * b, "Questão 4a")
-printer(GA.LCONT(e3, b, metric), "Questão 4b")
-printer(GA.LCONT(e3, a ^ b, metric), "Questão 4c")
-printer(GA.LCONT((a ^ b), e1, metric), "Questão 4d")
-printer(((2 * a) + b) * (a + b), "Questão 4e")
-printer(GA.RCONT((e1 ^ e2 ^ e3), b, metric), "Questão 4f")
-
-#Questão 7
-
-# print("sep=;\n;", end="")
-# for i in range(0, 8):
-	# print(decimalToBinary(i), ";", end="")
-# print("")
-# for i in range(0, 8):
-# 	mv1 = Multivector()
-# 	mv1[i] = 1
-# 	# print(decimalToBinary(i), ";", end="")
-# 	for j in range(0, 8):
-# 		mv2 = Multivector()
-# 		mv2[j] = 1
-# 		result = GA.GP(mv1, mv2)
-# 		printer(result, "Produto geométrico entre " + decimalToBinary(i) + " e " + decimalToBinary(j))
-
-# for i in range(0, 8):
-# 	mv1 = Multivector()
-# 	mv1[i] = 1
-# 	for j in range(0, 8):
-# 		mv2 = Multivector()
-# 		mv2[j] = 1
-# 		result = mv1 ^ mv2
-# 		printer(result, "Produto externo entre " + decimalToBinary(i) + " e " + decimalToBinary(j))
-
-# for i in range(0, 8):
-# 	mv1 = Multivector()
-# 	mv1[i] = 1
-# 	for j in range(0, 8):
-# 		mv2 = Multivector()
-# 		mv2[j] = 1
-# 		result = mv1 * mv2
-# 		printer(result, "Produto escalar entre blades " + decimalToBinary(i) + " e " + decimalToBinary(j))
-
-# for i in range(0, 8):
-# 	mv1 = Multivector()
-# 	mv1[i] = 1
-# 	for j in range(0, 8):
-# 		mv2 = Multivector()
-# 		mv2[j] = 1
-# 		result = GA.LCONT(mv1, mv2)
-# 		printer(result, "Contração à esquerda de " + decimalToBinary(i) + " e " + decimalToBinary(j))
-
-cliff = Clifford(p=2, q=1)
-
-for i in range(0, 8):
-	mv1 = Multivector()
-	mv1[i] = 1
-	for j in range(0, 8):
-		mv2 = Multivector()
-		mv2[j] = 1
-		resultEucl = GA.GP(mv1, mv2)
-		resultCliff = GA.GP(mv1, mv2, cliff)
-		if (resultEucl == resultCliff):
-			print("Produto geométrico entre " + decimalToBinary(i) + " e " + decimalToBinary(j) + " idem euclidiano")
-		else:
-			printer(resultCliff, "Produto geométrico entre " + decimalToBinary(i) + " e " + decimalToBinary(j))
+    unittest.main()
