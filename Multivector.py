@@ -79,10 +79,14 @@ class Multivector(object):
 			raise TypeError("Must divide by a scalar or other Multivector")
 
 	def __getitem__(self, key):
-		return self.mv[key]
+		try:
+			return self.mv[key]
+		except KeyError:
+			return 0
 
 	def __setitem__(self, key, value):
 		self.mv[key] = value
+		return self
 
 	def __eq__(self, other):
 		iterSelf = iter(sorted(self.masks()))
@@ -104,6 +108,30 @@ class Multivector(object):
 		while (mask2 is not None):
 			return False
 		return True
+
+	def __str__(self):
+		string = "Multivector["
+		for (mask, coef) in self.items():
+			string = string + (Multivector.decimalToBinary(mask) + ": " + str(coef) + ", ")
+		string = string[:-2] + "]"
+		return string
+
+	#auxiliary method for __str__
+	@staticmethod
+	def decimalToBinary(number):
+		string = ""
+		count = 0
+		while (number > 0):
+			count = count + 1
+			if (number % 2 == 1):
+				if (len(string) > 0):
+					string = string + " ^ "
+				string = string + "e" + str(count)
+			number //= 2
+		if (len(string) == 0):
+			string = "scalar"
+		return string
+
 
 	def items(self):
 		return self.mv.items()

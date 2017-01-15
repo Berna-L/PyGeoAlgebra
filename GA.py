@@ -87,8 +87,8 @@ def OP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int):
 	else:
 		return (0.0, 0)
 
-def RP(mv1, mv2):
-	return multiOperator(mv1, mv2, Operation.REGRESSIVE_PRODUCT)
+def RP(mv1, mv2, dimensions):
+	return multiOperator(mv1, mv2, Operation.REGRESSIVE_PRODUCT, None, dimensions)
 
 
 def RP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, dimension: int): #How to dimension?
