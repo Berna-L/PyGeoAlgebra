@@ -33,7 +33,8 @@ def multiOperator(mv1, mv2, operation, metric = None, dimensions = -1):
 				coef, mask = LCONT_COMPONENT(coef1, mask1, coef2, mask2, metric)
 			elif (operation is Operation.BLADES_SCALAR_PRODUCT):
 				coef, mask = SCP_COMPONENT(coef1, mask1, coef2, mask2, metric)
-			result.insertBase(coef, mask)
+			if (coef != 0):
+				result.insertBase(coef, mask)
 	return result
 
 
@@ -79,6 +80,7 @@ def OP(mv1, mv2):
 
 
 def OP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int):
+	# print("Mask1:", mask1, "Coef1:", coef1, "Mask2", mask2, "Coef2", coef2)
 	if (mask1 & mask2 == 0):
 		signal = CANON_REORDER(mask1, mask2)
 		coefResult = signal * coef1 * coef2
@@ -155,6 +157,7 @@ def DELTA_PRODUCT(blade1, blade2):
 
 
 def MEET_JOIN(blade1, blade2, dimensions):
+	# print(blade1)
 	if (IS_BLADE(blade1) and IS_BLADE(blade2)):
 		r = GRADE(blade1)
 		s = GRADE(blade2)

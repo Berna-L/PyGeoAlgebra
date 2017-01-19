@@ -6,6 +6,7 @@ import collections
 import Metric
 import OrthogonalMetric
 import Euclidian
+import copy
 
 class Multivector(object):
 
@@ -69,7 +70,10 @@ class Multivector(object):
 		if (isinstance(other, int) or isinstance(other, float)):
 			result = Multivector()
 			for (mask, coef) in self.items():
-				result[mask] = other / coef
+				try:
+					result[mask] = other / coef
+				except ZeroDivisionError:
+					pass
 			return result
 		elif (isinstance(other, Multivector)):
 			from GA import Operation
@@ -108,6 +112,14 @@ class Multivector(object):
 		while (mask2 is not None):
 			return False
 		return True
+
+	def __deepcopy__(self, memo):
+		cls = self.__class__
+		result = cls.__new__(cls)
+		memo[id(self)] = result
+		for k, v in self.__dict__.items():
+			setattr(result, k, copy.deepcopy(v, memo))
+		return result
 
 	def __str__(self):
 		string = "Multivector["
