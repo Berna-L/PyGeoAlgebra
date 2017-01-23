@@ -95,8 +95,8 @@ def RP(mv1, mv2, dimensions):
 
 def RP_COMPONENT(coef1: float, mask1: int, coef2: float, mask2: int, dimension: int): #How to dimension?
 	maskResult = mask1 & mask2
-	if (GRADE(mask1) + GRADE(mask2) - GRADE(maskResult) == dimension):
-		signal = CANON_REORDER(mask1 ^ mask2, mask2 ^ maskResult)
+	if ((GRADE(mask1) + GRADE(mask2) - GRADE(maskResult)) == dimension):
+		signal = CANON_REORDER(mask1 ^ maskResult, mask2 ^ maskResult)
 		coefResult = signal * coef1 * coef2
 	else:
 		coefResult = 0
